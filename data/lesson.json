@@ -1,0 +1,219 @@
+{
+  "id": "sync-motor-excitation",
+  "title": "Synchronous Motor Excitation",
+  "subtitle": "Electrical Machines \u00b7 Lesson 4",
+  "videoUrl": "",
+  "durationSec": 64,
+  "suggestedQuestions": [
+    {
+      "id": "current",
+      "text": "Why does the armature current go up when excitation changes?"
+    },
+    {
+      "id": "speed",
+      "text": "Why doesn't the motor speed change with excitation?"
+    },
+    {
+      "id": "unity",
+      "text": "What does unity power factor mean for this motor?"
+    }
+  ],
+  "chunks": [
+    {
+      "id": "c1",
+      "start": 0,
+      "end": 8,
+      "concept": "sync_speed",
+      "title": "Constant speed",
+      "text": "A synchronous motor locks onto the rotating field of the supply. Its speed depends only on supply frequency and pole count, never on the load."
+    },
+    {
+      "id": "c2",
+      "start": 8,
+      "end": 16,
+      "concept": "phasors",
+      "title": "Phasor view",
+      "text": "To see what the machine does electrically, we draw voltages and currents as phasors. Lengths show size, and angles show timing."
+    },
+    {
+      "id": "c3",
+      "start": 16,
+      "end": 24,
+      "concept": "back_emf",
+      "title": "Back EMF",
+      "text": "The spinning rotor field induces a back EMF, called E, in the stator windings. The supply voltage V and E together decide the armature current."
+    },
+    {
+      "id": "c4",
+      "start": 24,
+      "end": 32,
+      "concept": "excitation",
+      "title": "Field excitation",
+      "text": "Excitation is the DC current we feed the rotor field winding. More excitation means a stronger rotor field, and so a larger back EMF."
+    },
+    {
+      "id": "c5",
+      "start": 32,
+      "end": 40,
+      "concept": "armature_current",
+      "title": "Armature current",
+      "text": "At a fixed load the motor must draw the same real power. So the part of the armature current that is in phase with V stays constant."
+    },
+    {
+      "id": "c6",
+      "start": 40,
+      "end": 48,
+      "concept": "power_factor",
+      "title": "Power factor",
+      "text": "Excitation only reshapes the reactive part. Under-excited, the current lags the voltage. Over-excited, it leads. At unity, current is smallest."
+    },
+    {
+      "id": "c7",
+      "start": 48,
+      "end": 56,
+      "concept": "v_curve",
+      "title": "The V-curve",
+      "text": "Plot armature current against excitation and you get a V. The bottom of the V is unity power factor, where the current is at its minimum."
+    },
+    {
+      "id": "c8",
+      "start": 56,
+      "end": 64,
+      "concept": "load_angle",
+      "title": "Load angle",
+      "text": "As the load rises, E slips further behind V. That angle is the load angle, and it must stay below ninety degrees to keep the motor in step."
+    }
+  ],
+  "concepts": [
+    {
+      "id": "phasors",
+      "label": "Phasors",
+      "prerequisites": [],
+      "x": 0.0,
+      "y": 0.22
+    },
+    {
+      "id": "sync_speed",
+      "label": "Sync speed",
+      "prerequisites": [],
+      "x": 0.0,
+      "y": 0.8
+    },
+    {
+      "id": "power_factor",
+      "label": "Power factor",
+      "prerequisites": [
+        "phasors"
+      ],
+      "x": 0.33,
+      "y": 0.06
+    },
+    {
+      "id": "back_emf",
+      "label": "Back EMF",
+      "prerequisites": [
+        "phasors",
+        "sync_speed"
+      ],
+      "x": 0.33,
+      "y": 0.58
+    },
+    {
+      "id": "armature_current",
+      "label": "Armature current",
+      "prerequisites": [
+        "power_factor",
+        "back_emf"
+      ],
+      "x": 0.66,
+      "y": 0.06
+    },
+    {
+      "id": "excitation",
+      "label": "Excitation",
+      "prerequisites": [
+        "back_emf",
+        "power_factor"
+      ],
+      "x": 0.66,
+      "y": 0.45
+    },
+    {
+      "id": "load_angle",
+      "label": "Load angle",
+      "prerequisites": [
+        "back_emf"
+      ],
+      "x": 0.66,
+      "y": 0.84
+    },
+    {
+      "id": "v_curve",
+      "label": "V-curve",
+      "prerequisites": [
+        "excitation",
+        "armature_current"
+      ],
+      "x": 1.0,
+      "y": 0.3
+    }
+  ],
+  "misconceptions": [
+    {
+      "tag": "excitation_adds_power",
+      "label": "Excitation adds power",
+      "concept": "excitation",
+      "description": "Raising excitation makes the motor draw more real power, so the armature current rises because the motor is 'working harder'.",
+      "signals": [
+        "works harder",
+        "more power",
+        "more torque",
+        "stronger field means more current"
+      ]
+    },
+    {
+      "tag": "current_only_from_load",
+      "label": "Only load sets current",
+      "concept": "armature_current",
+      "description": "Armature current can only change when the mechanical load changes; field excitation cannot affect it.",
+      "signals": [
+        "load only",
+        "nothing changes",
+        "current depends on load"
+      ]
+    },
+    {
+      "tag": "excitation_changes_speed",
+      "label": "Excitation changes speed",
+      "concept": "sync_speed",
+      "description": "Changing the field current changes how fast the motor turns, as in a DC motor.",
+      "signals": [
+        "speed up",
+        "slow down",
+        "rpm changes",
+        "faster"
+      ]
+    },
+    {
+      "tag": "unity_pf_max_current",
+      "label": "Unity PF means max current",
+      "concept": "power_factor",
+      "description": "Unity power factor is thought to be the point of maximum current, instead of the minimum for a given load.",
+      "signals": [
+        "unity is the peak",
+        "best power factor means most current"
+      ]
+    },
+    {
+      "tag": "current_always_in_phase",
+      "label": "Current always in phase",
+      "concept": "armature_current",
+      "description": "The armature current is assumed to always be in phase with the supply voltage, so there is no reactive component to adjust.",
+      "signals": [
+        "always in phase",
+        "no reactive part",
+        "lagging or leading?"
+      ]
+    }
+  ]
+}
