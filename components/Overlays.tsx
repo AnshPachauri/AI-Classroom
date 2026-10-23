@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFocusGrid } from "@/lib/focus/useFocusGrid";
 import { useSession } from "@/lib/session/sessionMachine";
-import TVButton from "./TVButton";
 
 /** Optional voice (Web Speech API). Chips are the primary input; this is an enhancement only. */
 function useSpeech(onResult: (text: string) => void) {
@@ -60,43 +59,86 @@ const Backdrop = ({ children }: { children: React.ReactNode }) => (
   <div className="screen-enter absolute inset-0 z-10 flex flex-col items-center justify-center bg-[rgba(5,7,13,.97)]">{children}</div>
 );
 
-/** Listening: shows what the TV "heard", or lets the student pick a question. */
+/**
+ * Scripted voice capture for the demo: a waveform plays while the next suggested question
+ * "transcribes" word by word, then it's asked. No mic permission, so it can't fail on stage.
+ * `?voice=real` swaps in the Web Speech API instead.
+ */
+let scriptedTurn = 0;
+function useScriptedVoice(script: string, enabled: boolean, onDone: (text: string) => void) {
+  const [heard, setHeard] = useState("");
+  const cb = useRef(onDone);
+  cb.current = onDone;
+
+  useEffect(() => {
+    if (!enabled) return;
+    const words = script.split(" ");
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const LEAD = 1100, STEP = 210;
+    words.forEach((_, i) => timers.push(setTimeout(() => setHeard(words.slice(0, i + 1).join(" ")), LEAD + i * STEP)));
+    timers.push(setTimeout(() => cb.current(script), LEAD + words.length * STEP + 700));
+    return () => timers.forEach(clearTimeout);
+  }, [script, enabled]);
+
+  return heard;
+}
+
+function Waveform({ live }: { live: boolean }) {
+  return (
+    <div className="mt-10 flex h-[120px] items-center gap-[10px]">
+      {Array.from({ length: 28 }, (_, i) => (
+        <div
+          key={i}
+          className={live ? "wave-bar" : ""}
+          style={{
+            width: 12,
+            height: live ? 110 : 14,
+            borderRadius: 6,
+            background: "var(--accent)",
+            opacity: live ? 0.9 : 0.35,
+            animationDelay: `${-((i * 137) % 900)}ms`,
+            animationDuration: `${700 + ((i * 53) % 500)}ms`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Listening: captures the spoken question (scripted by default), then shows what the TV heard. */
 export function Listening() {
   const lesson = useSession((s) => s.lesson)!;
   const question = useSession((s) => s.question);
   const { ask, back } = useSession.getState();
-  const speech = useSpeech((t) => t.trim().length > 1 && void ask(t.trim()));
+  const [realVoice] = useState(() => new URLSearchParams(window.location.search).get("voice") === "real");
+  const [script] = useState(() => {
+    const qs = lesson.suggestedQuestions;
+    return qs[scriptedTurn++ % qs.length].text;
+  });
 
-  const questions = lesson.suggestedQuestions;
-  const picking = question === null;
-  const ids = [...questions.map((_, i) => `q${i}`), ...(speech.supported ? ["mic"] : [])];
-  const { is } = useFocusGrid(picking ? ids.map((i) => [i]) : [], {
-    onEnter: (id) => (id === "mic" ? speech.toggle() : void ask(questions[Number(id.slice(1))].text)),
+  const capturing = question === null;
+  const speech = useSpeech((t) => t.trim().length > 1 && void ask(t.trim()));
+  const heard = useScriptedVoice(script, capturing && !realVoice, (t) => void ask(t));
+
+  useEffect(() => {
+    if (capturing && realVoice && speech.supported && !speech.active) speech.toggle();
+  }, [capturing, realVoice, speech.supported]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useFocusGrid([], {
+    onEnter: () => capturing && !realVoice && void ask(script),
     onBack: back,
   });
 
+  const live = capturing && (!realVoice || speech.active);
   return (
     <Backdrop>
-      <Orb size={picking ? 110 : 150} />
-      <div className="mt-8 text-[64px] font-bold">{speech.active ? "Listening…" : picking ? "What's confusing?" : "Got it"}</div>
-
-      {picking ? (
-        <div className="mt-10 flex w-[1200px] flex-col gap-5">
-          {questions.map((q, i) => (
-            <TVButton key={q.id} focused={is(`q${i}`)} onClick={() => void ask(q.text)} className="flex h-[112px] items-center text-[38px]">
-              {q.text}
-            </TVButton>
-          ))}
-          {speech.supported && (
-            <TVButton focused={is("mic")} onClick={speech.toggle} tone="ghost" className="flex h-[100px] items-center justify-center text-[34px]">
-              {speech.active ? "Listening… say your question" : "Or say it (microphone)"}
-            </TVButton>
-          )}
-          <div className="text-center text-[26px] text-[var(--muted)]">Back to cancel</div>
-        </div>
-      ) : (
-        <div className="mt-8 max-w-[1400px] text-center text-[56px] leading-tight text-slate-100">“{question}”</div>
-      )}
+      <Orb size={capturing ? 120 : 150} />
+      <div className="mt-8 text-[64px] font-bold">{capturing ? "Listening…" : "Got it"}</div>
+      {capturing && <Waveform live={live} />}
+      <div className="mt-8 min-h-[150px] max-w-[1400px] text-center text-[56px] leading-tight text-slate-100">
+        {capturing ? (heard ? <>“{heard}<span className="caret">|</span>”</> : <span className="text-[var(--muted)]">Say your question</span>) : <>“{question}”</>}
+      </div>
+      {capturing && <div className="absolute bottom-[40px] text-[24px] text-[var(--muted)]">Back to cancel</div>}
     </Backdrop>
   );
 }
